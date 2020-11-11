@@ -1,0 +1,41 @@
+# Algorithm Summary
+
+## Algorithm for action recognition 
+
+### 1. 3D convolution 
+#### Essay (The logic figure could be refered and easily been understood.)
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.442.8617&rep=rep1&type=pdf
+####  Theory Intro
+https://towardsdatascience.com/step-by-step-implementation-3d-convolutional-neural-network-in-keras-12efbdd7b130
+https://www.kaggle.com/shivamb/3d-convolutions-understanding-use-case
+#### code
+https://github.com/facebookarchive/C3D.git
+
+### 2. iDT (Improved Dense Trajectories)
+#### Essay
+https://openaccess.thecvf.com/content_iccv_2013/papers/Wang_Action_Recognition_with_2013_ICCV_paper.pdf
+#### code
+https://github.com/chuckcho/iDT.git
+#### ps:
+'''Currently, the deep learning has surpassed the iDT algorithm for action detecting. But the iDT always could improve the final result after deep learning. 
+Therefore, most of papers with better results are in the form of "Our method+iDT" in recent years.'''
+
+### 3. TSN (Temporal Segment Networks)
+### Intro （Essay could not be accessed）
+https://www.slideshare.net/DongangDawnWang/temporal-segment-network
+http://yjxiong.me/others/tsn/
+#### code
+https://github.com/yjxiong/temporal-segment-networks.git
+https://github.com/yjxiong/tsn-pytorch.git
+
+### 4. LRCN (Long-term Recurrent Convolutional Networks)
+####code
+https://github.com/garythung/torch-lrcn.git
+https://github.com/salaniz/pytorch-gve-lrcn.git
+
+### 5. Two Stream Fusion (Convolutional Two-Stream Network Fusion For Video Action Recognition)
+#### Essay
+https://feichtenhofer.github.io/pubs/Feichtenhofer_Two_Stream_Fusion_2016_CVPR.pdf
+#### code
+https://github.com/feichtenhofer/twostreamfusion.git
+https://github.com/tomar840/two-stream-fusion-for-action-recognition-in-videos.git
