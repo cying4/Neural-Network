@@ -8,6 +8,7 @@ from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Conv3D, MaxPoolin
 from keras.regularizers import l2
 from keras.layers.core import Lambda
 from keras.optimizers import Adam,Nadam,SGD,RMSprop
+import matplotlib.pyplot as plt
 
 source_path = os.getcwd() + "/RWF-2000_preprocessed_64"
 
@@ -46,9 +47,9 @@ def preprocess(violence, non, batch_size):
 
     return x_violence_data, x_non_data, y_violence, y_non
 
-x_train_violence, x_train_non, y_train_violence, y_train_non = preprocess(train_violence, train_non, 256)
+x_train_violence, x_train_non, y_train_violence, y_train_non = preprocess(train_violence, train_non, 128)
 
-x_test_violence, x_test_non, y_test_violence, y_test_non = preprocess(train_violence, train_non, 84)
+x_test_violence, x_test_non, y_test_violence, y_test_non = preprocess(train_violence, train_non, 32)
 
 y_train, y_test =np.hstack((y_train_violence,y_train_non)), np.hstack((y_test_violence,y_test_non))
 y_train, y_test = to_categorical(y_train, num_classes=2), to_categorical(y_test, num_classes=2)
@@ -102,7 +103,7 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 es = EarlyStopping(monitor='val_loss',mode='min',patience=10,restore_best_weights=True)
 mc = ModelCheckpoint('mlp_sstaub.h5', monitor='val_loss', mode='max',save_best_only=True)
 
-model.fit(x_train, y_train, batch_size=16, epochs=32, validation_data=(x_test, y_test), callbacks=[es, mc])
+H = model.fit(x_train, y_train, batch_size=8, epochs=16, validation_data=(x_test, y_test), callbacks=[mc])
 
 from sklearn.metrics import cohen_kappa_score, f1_score
 print("Final accuracy on validations set:", 100*model.evaluate(x_test, y_test)[1], "%")
@@ -110,3 +111,26 @@ print("Cohen Kappa", cohen_kappa_score(np.argmax(model.predict(x_test),axis=1),n
 print("F1 score", f1_score(np.argmax(model.predict(x_test),axis=1),np.argmax(y_test,axis=1), average = 'macro'))
 #%%
 model.save('mlp_sstaub_1.hdf5')
+
+predict = np.argmax(model.predict(x_test), axis=1)
+# %%
+raw = np.argmax(y_test, axis=1)
+from sklearn.metrics import confusion_matrix
+
+cm = confusion_matrix(y_pred=predict, y_true=raw)
+print('confusion matrix')
+print(cm)
+
+N = 16
+plt.style.use("ggplot")
+plt.figure()
+plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
+plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
+plt.plot(np.arange(0, N), H.history["accuracy"], label="train_acc")
+plt.plot(np.arange(0, N), H.history["val_accuracy"], label="val_acc")
+plt.title("Training Loss and Accuracy on Dataset")
+plt.xlabel("Epoch #")
+plt.ylabel("Loss/Accuracy")
+plt.legend(loc="lower left")
+plt.show()
+plt.savefig(os.getcwd() + "conv2d_plot")
