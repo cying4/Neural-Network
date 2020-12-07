@@ -1,2 +1,2 @@
 # Code
-The preprocess and changhao ying.py files are preprocess py files. Rest py files are individual models building file. The unnamed model building py files are spencer's. The rest named py files are changhao and hongfei's. 
+The preprocess.py are the first py needs to run which turns the videoes into npy files. After transferring into npy files, the rest py are the model buildings processes with the transformed py files. 
