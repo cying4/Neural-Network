@@ -55,9 +55,6 @@ def stack(path,label_names, frame=20):
             elif f1 == "NoViolence":
                 y_temp = np.dstack((temp2, temp1)).reshape(-1, 2)
             y.append(y_temp)
-    # shuffle_i = np.random.permutation(np.arange(len(x)))
-    # x, y = np.asarray(x), np.asarray(y)
-    # x, y = x[shuffle_i], y[shuffle_i]
     y = np.vstack(y)
     x = np.vstack(x)
     return x, y
@@ -66,18 +63,18 @@ def stack(path,label_names, frame=20):
 
 label_names = ["Violence", "NoViolence"]
 x_train, x_test, y_train, y_test=[],[],[],[]
-x_train, y_train = stack(DATA_DIR, label_names, frame=20)
-x_test, y_test = stack(DATA_DIR_Test, label_names, frame=20)
+x_train, y_train = stack(DATA_DIR, label_names, frame=28)
+x_test, y_test = stack(DATA_DIR_Test, label_names, frame=28)
 print(x_train.shape,y_train.shape)
 
 
 # %% -------------------------------------- Data Prep ------------------------------------------------------------------
 
-x_train,y_train = torch.tensor(x_train).view(len(x_train),5, 20, 10000).float().to(device),torch.tensor(y_train).to(device)
-x_test,y_test = torch.tensor(x_test).view(len(x_test),5, 20, 10000).float().to(device),torch.tensor(y_test).to(device)
+x_train,y_train = torch.tensor(x_train).float().to(device),torch.tensor(y_train).to(device)
+x_test,y_test = torch.tensor(x_test).float().to(device),torch.tensor(y_test).to(device)
 print(x_train.shape,y_train.shape)
 
-LR = 1e-5
+LR = 1e-3
 N_EPOCHS = 500
 BATCH_SIZE = 100
 DROPOUT = 0.2
