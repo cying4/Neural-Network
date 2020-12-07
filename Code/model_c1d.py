@@ -31,21 +31,27 @@ def preprocess(violence, non, batch_size):
     y_non = np.hstack(y_non_data)
     return x_violence_data, x_non_data, y_violence, y_non
 #%%
-x_train_violence, x_train_non, y_train_violence, y_train_non = preprocess(train_violence, train_non, 256)
-y =np.hstack((y_train_violence,y_train_non))
-y=to_categorical(y, num_classes=2)
-print(y.shape)
+x_train_violence, x_train_non, y_train_violence, y_train_non = preprocess(train_violence, train_non, 64)
+x_test_violence, x_test_non, y_test_violence, y_test_non = preprocess(train_violence, train_non, 16)
+x_train, x_test = np.vstack((x_train_violence,x_train_non)), np.vstack((x_test_violence,x_test_non))
+y_train, y_test =np.hstack((y_train_violence,y_train_non)), np.hstack((y_test_violence,y_test_non))
+y_train, y_test = to_categorical(y_train, num_classes=2), to_categorical(y_test, num_classes=2)
 #%%
-x= np.vstack((x_train_violence,x_train_non))
-from sklearn.preprocessing import scale
-x=x.reshape(len(x),-1)
-x=scale(x)
-print(x.shape)
+def normalize(data):
+    mean = np.mean(data)
+    std = np.std(data)
+    return (data - mean) / std
+x_train = normalize(x_train)
+x_test = normalize(x_test)
+print(x_train.shape)
+print(x_test.shape)
+# %%
+x_train = x_train.reshape(9536, 50*50*5,1)
+x_test = x_test.reshape(2384, 50*50*5,1)
+
 #%%
-x=x.reshape(76288,12500,1)
-#%%
-from sklearn.model_selection import train_test_split
-x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=42, test_size=0.2)
+#from sklearn.model_selection import train_test_split
+#x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=42, test_size=0.2)
 #%%
 from keras.models import Sequential, Model
 from keras.layers import Conv1D,Dense, Dropout, Flatten,AvgPool1D, \
@@ -65,7 +71,7 @@ model.add(Dense(100, activation='relu'))
 model.add(Dropout(0.1))
 model.add(Dense(2, activation='sigmoid'))
 model.compile(optimizer=Adam(lr=0.001), loss ='BinaryCrossentropy', metrics=['accuracy'])
-model.fit(x_train, y_train, batch_size=200, epochs=10,validation_data=(x_test, y_test))
+model.fit(x_train, y_train, batch_size=4, epochs=10,validation_data=(x_test, y_test))
 #%%
 from sklearn.metrics import cohen_kappa_score, f1_score
 print("Final accuracy on validations set:", 100*model.evaluate(x_test, y_test)[1], "%")
