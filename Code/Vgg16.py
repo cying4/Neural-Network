@@ -10,7 +10,6 @@ from efficientnet_pytorch import EfficientNet
 from math import ceil
 
 
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 SEED = 42
 os.environ['PYTHONHASHSEED'] = str(SEED)
@@ -24,14 +23,14 @@ def get_rgb(input_x):
     rgb = input_x[...,:3]
     return rgb
 DATA_DIR = os.getcwd()+"/npy_100/Train200"
-DATA_DIR_Test = os.getcwd()+"/npy_100/Test60"
+DATA_DIR_Test = os.getcwd()+"/npy_100/Test50"
 def stack(path,label_names, frame=20):
     x,y=[],[]
     for f1 in label_names:
         path_loop = os.path.join(path, f1)
         for f2 in [f2 for f2 in os.listdir(path_loop) if f2[-4:] == ".npy"]:
             a = np.load(path_loop + "/" + f2)
-            # a = get_rgb(a)
+            a = get_rgb(a)
             num1 = len(a)//frame
             num2 = ceil(len(a)/frame)
             a_recrop=[]
@@ -73,8 +72,8 @@ print(x_train.shape,y_train.shape)
 
 # %% -------------------------------------- Data Prep ------------------------------------------------------------------
 
-x_train,y_train = torch.tensor(x_train).view(len(x_train),5, 20, 10000).float().to(device),torch.tensor(y_train).to(device)
-x_test,y_test = torch.tensor(x_test).view(len(x_test),5, 20, 10000).float().to(device),torch.tensor(y_test).to(device)
+x_train,y_train = torch.tensor(x_train).view(len(x_train),3, 20, 10000).float().to(device),torch.tensor(y_train).to(device)
+x_test,y_test = torch.tensor(x_test).view(len(x_test),3, 20, 10000).float().to(device),torch.tensor(y_test).to(device)
 print(x_train.shape,y_train.shape)
 
 LR = 1e-5
@@ -99,13 +98,8 @@ def calculate_acuracy_mode_one(model_pred, labels):
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=5,
-                               out_channels=3,
-                               kernel_size=3,
-                               stride=1,
-                               padding=1)
-        self.efficientNet = EfficientNet.from_pretrained('efficientnet-b0')
-        num_ftrs = self.efficientNet._fc.out_features
+        self.vgg = torchvision.models.vgg16(pretrained=True)
+        num_ftrs = self.vgg[6].classifier[6].out_features
         self.linear0_bn = nn.BatchNorm1d(num_ftrs)
         self.linear1 = nn.Linear(num_ftrs, 512)
         self.linear1_bn = nn.BatchNorm1d(512)
@@ -117,18 +111,17 @@ class Net(nn.Module):
 
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.act(self.linear0_bn(self.efficientNet(x)))
+        x = self.act(self.linear0_bn(self.vgg(x)))
         x = self.act(self.linear1_bn(self.linear1(x)))
         x = self.drop(self.act(self.linear2_bn(self.linear2(x))))
         return self.linear3(x)
 
 # %% -------------------------------------- Training Prep ----------------------------------------------------------
 model = Net().to(device)
-optimizer = torch.optim.SGD(model.parameters(),lr=LR, weight_decay=0.5*LR)
+optimizer = torch.optim.SGD(model.parameters(),lr=LR, weight_decay=0.1*LR)
 scheduler_adam_p1= torch.optim.lr_scheduler.StepLR(optimizer,step_size=5, gamma = 0.1)
-scheduler_adam_p2= torch.optim.lr_scheduler.StepLR(optimizer,step_size=8, gamma = 0.5)
-scheduler_adam_p3= torch.optim.lr_scheduler.StepLR(optimizer,step_size=5, gamma = 0.8)
+scheduler_adam_p2= torch.optim.lr_scheduler.StepLR(optimizer,step_size=10, gamma = 0.5)
+scheduler_adam_p3= torch.optim.lr_scheduler.StepLR(optimizer,step_size=15, gamma = 0.8)
 criterion=nn.BCEWithLogitsLoss()
 criterion_test=nn.BCELoss()
 
@@ -150,11 +143,11 @@ for epoch in range(N_EPOCHS):
         loss.backward()
         optimizer.step()
         loss_train+=loss.item()
-    if (epoch >= 0 and epoch < 6):
+    if (epoch >= 0 and epoch < 4):
         scheduler_adam_p1.step()
-    if (epoch >= 0 and epoch < 14):
+    if (epoch >= 0 and epoch < 20):
         scheduler_adam_p2.step()
-    if (epoch >= 20 and epoch < 50):
+    if (epoch >= 20 and epoch < 70):
         scheduler_adam_p3.step()
     model.eval()
     with torch.no_grad():
@@ -201,13 +194,8 @@ def predict(x):
     class Net(nn.Module):
         def __init__(self):
             super(Net, self).__init__()
-            self.conv1 = nn.Conv2d(in_channels=5,
-                                   out_channels=3,
-                                   kernel_size=3,
-                                   stride=1,
-                                   padding=1)
-            self.efficientNet = EfficientNet.from_pretrained('efficientnet-b0')
-            num_ftrs = self.efficientNet._fc.out_features
+            self.vgg = torchvision.models.vgg16(pretrained=True)
+            num_ftrs = self.vgg[6].classifier[6].out_features
             self.linear0_bn = nn.BatchNorm1d(num_ftrs)
             self.linear1 = nn.Linear(num_ftrs, 512)
             self.linear1_bn = nn.BatchNorm1d(512)
@@ -218,8 +206,7 @@ def predict(x):
             self.act = torch.relu
 
         def forward(self, x):
-            x = self.conv1(x)
-            x = self.act(self.linear0_bn(self.efficientNet(x)))
+            x = self.act(self.linear0_bn(self.vgg(x)))
             x = self.act(self.linear1_bn(self.linear1(x)))
             x = self.drop(self.act(self.linear2_bn(self.linear2(x))))
             return self.linear3(x)
