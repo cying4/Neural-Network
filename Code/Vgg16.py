@@ -9,7 +9,6 @@ import torchvision
 from efficientnet_pytorch import EfficientNet
 from math import ceil
 
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 SEED = 42
 os.environ['PYTHONHASHSEED'] = str(SEED)
@@ -116,8 +115,8 @@ class Net(nn.Module):
 # %% -------------------------------------- Training Prep ----------------------------------------------------------
 model = Net().to(device)
 optimizer = torch.optim.SGD(model.parameters(),lr=LR, weight_decay=0.1*LR)
-scheduler_adam_p1= torch.optim.lr_scheduler.StepLR(optimizer,step_size=5, gamma = 0.1)
-scheduler_adam_p2= torch.optim.lr_scheduler.StepLR(optimizer,step_size=10, gamma = 0.5)
+# scheduler_adam_p1= torch.optim.lr_scheduler.StepLR(optimizer,step_size=5, gamma = 0.1)
+# scheduler_adam_p2= torch.optim.lr_scheduler.StepLR(optimizer,step_size=10, gamma = 0.5)
 scheduler_adam_p3= torch.optim.lr_scheduler.StepLR(optimizer,step_size=15, gamma = 0.8)
 criterion=nn.BCEWithLogitsLoss()
 criterion_test=nn.BCELoss()
@@ -140,10 +139,10 @@ for epoch in range(N_EPOCHS):
         loss.backward()
         optimizer.step()
         loss_train+=loss.item()
-    if (epoch >= 0 and epoch < 4):
-        scheduler_adam_p1.step()
-    if (epoch >= 0 and epoch < 20):
-        scheduler_adam_p2.step()
+    # if (epoch >= 0 and epoch < 4):
+    #     scheduler_adam_p1.step()
+    # if (epoch >= 0 and epoch < 20):
+    #     scheduler_adam_p2.step()
     if (epoch >= 20 and epoch < 70):
         scheduler_adam_p3.step()
     model.eval()
@@ -172,7 +171,6 @@ for epoch in range(N_EPOCHS):
     print('Epoch {}: Relu loss: {:.5f} - Sig loss: {:.5f} - Relu Accuracy: {:.5f} - {}'.format(epoch+1, loss_test_relu,loss_test_sigmoid,calculate_acuracy_mode_one(predicted_relu,y_test),optimizer.param_groups[0]['lr']))
 
 
-
 plt.style.use("ggplot")
 plt.figure()
 plt.plot(np.arange(epoch)+1, np.asarray(loss_train_plot), label="train loss")
@@ -184,7 +182,6 @@ plt.title("Training Loss and Accuracy on dataset")
 plt.legend(loc = 3)
 plt.show()
 
-
 DROPOUT=0
 def predict(x):
     # Here you would load your model (.pt) and use it on x to get y_pred, and then return y_pred
@@ -192,7 +189,7 @@ def predict(x):
         def __init__(self):
             super(Net, self).__init__()
             self.vgg = torchvision.models.vgg16(pretrained=True)
-            num_ftrs = self.vgg[6].classifier[6].out_features
+            num_ftrs = self.vgg.classifier[6].out_features
             self.linear0_bn = nn.BatchNorm1d(num_ftrs)
             self.linear1 = nn.Linear(num_ftrs, 512)
             self.linear1_bn = nn.BatchNorm1d(512)
