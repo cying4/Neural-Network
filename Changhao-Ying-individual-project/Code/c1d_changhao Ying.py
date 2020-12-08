@@ -71,7 +71,7 @@ model.add(Dense(100, activation='relu'))
 model.add(Dropout(0.1))
 model.add(Dense(2, activation='sigmoid'))
 model.compile(optimizer=Adam(lr=0.001), loss ='BinaryCrossentropy', metrics=['accuracy'])
-model.fit(x_train, y_train, batch_size=4, epochs=10,validation_data=(x_test, y_test))
+model.fit(x_train, y_train, batch_size=4, epochs=30,validation_data=(x_test, y_test))
 #%%
 from sklearn.metrics import cohen_kappa_score, f1_score
 print("Final accuracy on validations set:", 100*model.evaluate(x_test, y_test)[1], "%")
