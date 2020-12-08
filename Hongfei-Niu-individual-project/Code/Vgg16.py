@@ -22,14 +22,13 @@ def get_rgb(input_x):
     rgb = input_x[...,:3]
     return rgb
 DATA_DIR = os.getcwd()+"/npy_100/Train200"
-DATA_DIR_Test = os.getcwd()+"/npy_100/Test50"
+DATA_DIR_Test = os.getcwd()+"/npy_100/Test60"
 def stack(path,label_names, frame=20):
     x,y=[],[]
     for f1 in label_names:
         path_loop = os.path.join(path, f1)
         for f2 in [f2 for f2 in os.listdir(path_loop) if f2[-4:] == ".npy"]:
             a = np.load(path_loop + "/" + f2)
-            a = get_rgb(a)
             num1 = len(a)//frame
             num2 = ceil(len(a)/frame)
             a_recrop=[]
@@ -43,8 +42,9 @@ def stack(path,label_names, frame=20):
                     a_recrop.append(a_clip)
                 a_recrop.append(a[len(a)-frame:])
             a = np.asarray(a_recrop)
+            a = get_rgb(a)
             a = a.transpose(0, 4, 1, 2, 3)/255
-            a = a.reshape(len(a),5,20,-1)
+            a = a.reshape(len(a),3,20,-1)
             x.append(a)
             temp1 = np.ones(len(a))
             temp2 = np.zeros(len(a))
@@ -68,8 +68,8 @@ print(x_train.shape,y_train.shape)
 
 # %% -------------------------------------- Data Prep ------------------------------------------------------------------
 
-x_train,y_train = torch.tensor(x_train).view(len(x_train),3,20,10000).float().to(device),torch.tensor(y_train).to(device)
-x_test,y_test = torch.tensor(x_test).view(len(x_train),3,20,10000).float().to(device),torch.tensor(y_test).to(device)
+x_train,y_train = torch.tensor(x_train).float().to(device),torch.tensor(y_train).to(device)
+x_test,y_test = torch.tensor(x_test).float().to(device),torch.tensor(y_test).to(device)
 print(x_train.shape,y_train.shape)
 
 LR = 1e-3
@@ -95,9 +95,8 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.vgg = torchvision.models.vgg16(pretrained=True)
-        num_ftrs = self.vgg.classifier[6].out_features
-        self.linear0_bn = nn.BatchNorm1d(num_ftrs)
-        self.linear1 = nn.Linear(num_ftrs, 512)
+        num_ftrs = self.vgg.classifier[6].in_features
+        self.vgg.classifier = nn.Linear(num_ftrs, 512)
         self.linear1_bn = nn.BatchNorm1d(512)
         self.drop = nn.Dropout(DROPOUT)
         self.linear2 = nn.Linear(512, 256)
@@ -107,8 +106,8 @@ class Net(nn.Module):
 
 
     def forward(self, x):
-        x = self.act(self.linear0_bn(self.vgg(x)))
-        x = self.act(self.linear1_bn(self.linear1(x)))
+        x = self.act(self.vgg(x))
+        x = self.act(self.linear1_bn(x))
         x = self.drop(self.act(self.linear2_bn(self.linear2(x))))
         return self.linear3(x)
 
