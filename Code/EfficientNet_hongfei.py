@@ -63,15 +63,15 @@ def stack(path,label_names, frame=20):
 
 label_names = ["Violence", "NoViolence"]
 x_train, x_test, y_train, y_test=[],[],[],[]
-x_train, y_train = stack(DATA_DIR, label_names, frame=28)
-x_test, y_test = stack(DATA_DIR_Test, label_names, frame=28)
+x_train, y_train = stack(DATA_DIR, label_names)
+x_test, y_test = stack(DATA_DIR_Test, label_names)
 print(x_train.shape,y_train.shape)
 
 
 # %% -------------------------------------- Data Prep ------------------------------------------------------------------
 
-x_train,y_train = torch.tensor(x_train).float().to(device),torch.tensor(y_train).to(device)
-x_test,y_test = torch.tensor(x_test).float().to(device),torch.tensor(y_test).to(device)
+x_train,y_train = torch.tensor(x_train).view(len(x_train),5,20,10000).float().to(device),torch.tensor(y_train).to(device)
+x_test,y_test = torch.tensor(x_test).view(len(x_train),5,20,10000).float().to(device),torch.tensor(y_test).to(device)
 print(x_train.shape,y_train.shape)
 
 LR = 1e-3
