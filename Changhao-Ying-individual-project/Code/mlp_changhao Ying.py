@@ -65,7 +65,7 @@ model.compile(loss='BinaryCrossentropy', optimizer=Adam(lr=0.001), metrics=['Acc
 #from keras.callbacks import ModelCheckpoint
 #es = EarlyStopping(monitor='val_loss',mode='min',patience=10,restore_best_weights=True)
 #mc = ModelCheckpoint('mlp_cying4.h5', monitor='val_loss', mode='max',save_best_only=True)
-model.fit(x_train, y_train, batch_size=512, epochs=200, validation_data=(x_test, y_test))
+model.fit(x_train, y_train, batch_size=512, epochs=30, validation_data=(x_test, y_test))
 #%%
 from sklearn.metrics import cohen_kappa_score, f1_score
 print("Final accuracy on validations set:", 100*model.evaluate(x_test, y_test)[1], "%")
